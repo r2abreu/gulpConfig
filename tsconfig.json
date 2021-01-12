@@ -1,0 +1,7 @@
+{
+    "files": ["production/ts/index.ts"], 
+    "compilerOptions": {
+        "noImplicitAny": true, 
+        "target": "ES6"
+    }
+}

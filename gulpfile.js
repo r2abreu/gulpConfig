@@ -1,20 +1,38 @@
 const gulp = require('gulp');
+const sass = require('gulp-sass');
+const ts = require('gulp-typescript');
+const tsProject = ts.createProject('tsconfig.json');
+const pug = require('gulp-pug');
 const postcss = require('gulp-postcss');
 const autoprefixer = require('autoprefixer');
 const nano = require('cssnano');
-const sass = require('gulp-sass');
 const browserSync = require('browser-sync').create();
 
 // Compile scss into css
 
 gulp.task('sass', () => {
 	return gulp
-		.src('./scss/**/*.scss')
+		.src('.production/scss/**/*.scss')
 		.pipe(sass())
 		.pipe(browserSync.stream())
 		.on('error', sass.logError)
 		.pipe(postcss([ autoprefixer /* , nano*/ ]))
-		.pipe(gulp.dest('./production/css'));
+		.pipe(gulp.dest('./dist/css'));
+});
+
+gulp.task('pug', () => {
+	return gulp
+		.src('.production/*.pug')
+		.pipe(
+			pug({
+				pretty: true
+			})
+		)
+		.pipe(gulp.dest('./dist/'));
+});
+
+gulp.task('ts', () => {
+	return tsProject.src().pipe(tsProject()).js.pipe(gulp.dest('./dist/'));
 });
 
 gulp.task(
@@ -22,12 +40,14 @@ gulp.task(
 	gulp.series('sass', function(done) {
 		browserSync.init({
 			server: {
-				baseDir: './production'
+				baseDir: './dist'
 			}
 		});
-		gulp.watch('./production/*.html').addListener('change', browserSync.reload);
-		gulp.watch('./scss/**/*.scss', gulp.parallel('sass'));
-		gulp.watch('./js/**/*.js').addListener('change', browserSync.reload);
+		gulp.watch('./dist/*.html').addListener('change', browserSync.reload);
+		gulp.watch('./production/scss/**/*.scss', gulp.parallel('sass'));
+		gulp.watch('./production/js/**/*.js').addListener('change', browserSync.reload);
+		gulp.watch('./production/*.pug', gulp.parallel('pug'));
+		gulp.watch('./production/ts/*.ts', gulp.parallel('ts'));
 		done();
 	})
 );
